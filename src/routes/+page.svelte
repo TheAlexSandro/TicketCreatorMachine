@@ -16,7 +16,7 @@
 		textY: 90,
 		maxTextWidth: 20,
 		qrSize: 61,
-		qrX: 72.87,
+		qrX: 72.8,
 		qrY: 11,
 		qrMargin: 1,
 		qrDark: '#000000',

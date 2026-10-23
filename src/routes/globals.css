@@ -1,0 +1,141 @@
+body,
+html {
+	box-sizing: border-box;
+	padding: 0;
+	margin: 0;
+}
+
+main {
+	padding: 0 20px 40px;
+}
+
+main .container {
+	display: flex;
+	width: 100%;
+	max-width: 1000px;
+}
+
+main .container form {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	width: 100%;
+}
+
+main .container form .inputs {
+	display: flex;
+	flex-direction: row;
+	gap: 30px;
+	flex-wrap: wrap;
+}
+
+main .container form .inputs > div {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 280px;
+	min-width: 0;
+}
+
+main .container form .inputs textarea {
+	width: 100%;
+	box-sizing: border-box;
+	resize: vertical;
+}
+
+main .container form .inputs button {
+	width: fit-content;
+	margin-top: 8px;
+}
+
+main .container form label {
+	margin-bottom: 5px;
+}
+
+main .container form fieldset {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+main .container form fieldset .desc {
+	line-height: 10px;
+}
+
+main .container form .grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+	gap: 12px;
+}
+
+main .container form .field {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin: 0;
+}
+
+main .container form .field.check {
+	flex-direction: row;
+	align-items: center;
+	gap: 8px;
+}
+
+main .container form .field input[type='color'] {
+	width: 100%;
+	height: 32px;
+	padding: 0;
+	cursor: pointer;
+}
+
+main .container form .preview {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+main .container form .preview canvas {
+	display: block;
+	width: 100%;
+	max-width: 200rem;
+	height: auto;
+	border: 1px solid #ccc;
+	background: #eee;
+}
+
+main .container form .preview p {
+	margin: 0;
+	font-size: 14px;
+}
+
+main .container form .summary {
+	font-size: 14px;
+}
+
+main .container form .submit {
+	width: 260px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+main .container form button {
+	display: flex;
+	padding: 10px 20px;
+	width: 100%;
+	align-items: center;
+	text-align: center;
+	justify-content: center;
+	height: fit-content;
+	cursor: pointer;
+}
+
+main .container form .progress {
+	font-size: 14px;
+	margin: 0;
+}
+
+main .container form .error {
+	color: #c0392b;
+	font-size: 14px;
+	margin: 0;
+}

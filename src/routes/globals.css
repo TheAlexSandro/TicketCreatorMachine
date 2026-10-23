@@ -139,3 +139,14 @@ main .container form .error {
 	font-size: 14px;
 	margin: 0;
 }
+
+footer {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    border-top: 1px solid black;
+    font-size: 14px;
+    gap: 5px;
+}

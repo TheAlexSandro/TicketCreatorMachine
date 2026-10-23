@@ -450,3 +450,9 @@
 		</form>
 	</section>
 </main>
+
+<footer>
+	<p>Dibuat oleh alumni. Ingin berkontribusi? silahkan ke</p>
+	<a href="https://github.com/TheAlexSandro/TicketCreatorMachine" target="_blank">TicketCreatorMachine</a>
+	<p>GitHub repository.</p>
+</footer>

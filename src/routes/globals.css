@@ -9,6 +9,17 @@ main {
 	padding: 0 20px 40px;
 }
 
+main .hero {
+	display: inline-flex;
+	flex-direction: column;
+	padding: 0;
+	margin-bottom: 20px;
+}
+
+main .hero h1 {
+	margin-bottom: -7px;
+}
+
 main .container {
 	display: flex;
 	width: 100%;
@@ -74,15 +85,34 @@ main .container form .field {
 	margin: 0;
 }
 
+main .container form .field {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin: 0;
+}
+
 main .container form .field.check {
+	margin-top: 20px;
 	flex-direction: row;
 	align-items: center;
 	gap: 8px;
 }
 
+main .container form .field input[type='checkbox'] {
+	height: 17px;
+	width: 17px;
+	cursor: pointer;
+}
+
+main .container form .field input,
+main .container form .field select {
+	padding: 10px 5px;
+}
+
 main .container form .field input[type='color'] {
 	width: 100%;
-	height: 32px;
+	height: 40px;
 	padding: 0;
 	cursor: pointer;
 }
@@ -129,6 +159,10 @@ main .container form button {
 	cursor: pointer;
 }
 
+main .container form button:disabled {
+	cursor: not-allowed;
+}
+
 main .container form .progress {
 	font-size: 14px;
 	margin: 0;
@@ -141,12 +175,12 @@ main .container form .error {
 }
 
 footer {
-    margin-top: 30px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    border-top: 1px solid black;
-    font-size: 14px;
-    gap: 5px;
+	margin-top: 30px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	border-top: 1px solid black;
+	font-size: 14px;
+	gap: 5px;
 }

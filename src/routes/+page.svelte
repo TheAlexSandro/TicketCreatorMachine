@@ -112,7 +112,7 @@
 		try {
 			templateImg = await loadImage(DEFAULT_TEMPLATE);
 		} catch {
-			templateName = 'Belum ada template, silakan upload';
+			templateName = 'Belum ada template, silakan upload (PNG/WEBP).';
 		}
 	});
 
@@ -141,6 +141,7 @@
 	}
 
 	function resetSettings() {
+		alert('Pengaturan direset.');
 		Object.assign(settings, DEFAULTS);
 	}
 
@@ -324,7 +325,10 @@
 {/snippet}
 
 <main>
-	<h1>Ticket Creator Machine</h1>
+	<section class="hero">
+		<h1>Ticket Creator Machine</h1>
+		<p>Mesin pembuat tiket otomatis</p>
+	</section>
 
 	<section class="container">
 		<form onsubmit={handleSubmit}>
@@ -438,10 +442,7 @@
 
 			<div class="submit">
 				<button type="button" onclick={resetSettings}>Reset Pengaturan</button>
-				<button type="button" onclick={resetInputs} disabled={!identifier && !qrContent}>
-					Reset Identifier &amp; Isi QR
-				</button>
-				<button type="submit" disabled={loading || !!classError}>
+				<button type="submit" disabled={loading || !!classError || !templateImg || !identifier}>
 					{loading ? 'Memproses...' : 'Cetak Tiket'}
 				</button>
 				{#if progress}<p class="progress">{progress}</p>{/if}
@@ -453,6 +454,8 @@
 
 <footer>
 	<p>Dibuat oleh alumni. Ingin berkontribusi? silahkan ke</p>
-	<a href="https://github.com/TheAlexSandro/TicketCreatorMachine" target="_blank">TicketCreatorMachine</a>
+	<a href="https://github.com/TheAlexSandro/TicketCreatorMachine" target="_blank"
+		>TicketCreatorMachine</a
+	>
 	<p>GitHub repository.</p>
 </footer>

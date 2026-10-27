@@ -30,8 +30,7 @@
 
 	let settings = $state<Settings>({ ...DEFAULTS });
 
-	let identifier = $state('');
-	let qrContent = $state('');
+	let data = $state('');
 	let loading = $state(false);
 	let progress = $state('');
 	let error = $state('');
@@ -53,48 +52,82 @@
 		'Impact'
 	];
 
-	const toLines = (v: string) =>
-		v
-			.split(/\r?\n/)
-			.map((l) => l.trim())
-			.filter(Boolean);
-
 	const safeName = (s: string) => s.replace(/[\\/:*?"<>|]/g, '').trim();
-	const CLASS_RE = /\s(XII|XI|X)\s+(\S.*)$/i;
-	const NO_CLASS = 'Tanpa Kelas';
 
-	function detectClass(name: string) {
-		const m = name.match(CLASS_RE);
-		return m ? `${m[1].toUpperCase()} ${m[2].trim().toUpperCase()}` : NO_CLASS;
+	// Kelas yang valid: X, XI, XII + jurusan/rombel, mis. "X DPIB 1", "XI TJKT 2", "XII TKP 1"
+	const CLASS_RE = /^(XII|XI|X)\s+\S/i;
+	const normalizeClass = (c: string) => c.replace(/\s+/g, ' ').trim().toUpperCase();
+
+	type Row = { line: number; qr: string; name: string; cls: string };
+
+	// Format tiap baris: KODE QR <tab> NAMA <tab> KELAS
+	function splitColumns(line: string) {
+		let cols = line
+			.split('\t')
+			.map((c) => c.trim())
+			.filter(Boolean);
+		// Cadangan: kalau tab berubah jadi spasi, pisah di 2+ spasi
+		if (cols.length < 3) {
+			cols = line
+				.split(/\s{2,}/)
+				.map((c) => c.trim())
+				.filter(Boolean);
+		}
+		return cols;
 	}
 
-	const names = $derived(toLines(identifier));
-	const qrs = $derived(toLines(qrContent));
+	const parsed = $derived.by(() => {
+		const rows: Row[] = [];
+		const badFormat: number[] = [];
+		const badClass: number[] = [];
+
+		data.split(/\r?\n/).forEach((raw, i) => {
+			if (!raw.trim()) return;
+			const cols = splitColumns(raw);
+			if (cols.length !== 3) {
+				badFormat.push(i + 1);
+				return;
+			}
+			const [qr, name, cls] = cols;
+			if (!CLASS_RE.test(cls)) {
+				badClass.push(i + 1);
+				return;
+			}
+			rows.push({ line: i + 1, qr, name, cls: normalizeClass(cls) });
+		});
+
+		return { rows, badFormat, badClass };
+	});
+
+	// Nama di tiket: "NAMA KELAS", mis. "ADITYA SASANA MUKTI X TKP 1"
 	const entries = $derived<Entry[]>(
-		names.map((name, i) => ({
-			name,
-			qr: qrs.length ? (qrs[i] ?? '') : name
-		}))
+		parsed.rows.map((r) => ({ name: `${r.name} ${r.cls}`, qr: r.qr }))
 	);
-	const classes = $derived([...new Set(names.map(detectClass))]);
-	const className = $derived(classes.length === 1 && classes[0] !== NO_CLASS ? classes[0] : '');
-	const classError = $derived.by(() => {
-		if (!names.length) return '';
+
+	const classes = $derived([...new Set(parsed.rows.map((r) => r.cls))]);
+
+	// Nama kelas dipakai sebagai judul ZIP (hanya valid kalau semua baris sama)
+	const className = $derived(classes.length === 1 ? classes[0] : '');
+
+	const fmtLines = (l: number[]) =>
+		l
+			.slice(0, 5)
+			.map((n) => `baris ${n}`)
+			.join(', ') + (l.length > 5 ? ', ...' : '');
+
+	const inputError = $derived.by(() => {
+		if (!data.trim()) return '';
+
+		if (parsed.badFormat.length)
+			return `Format salah di ${fmtLines(parsed.badFormat)}. Tiap baris harus: KODE QR [Tab] NAMA [Tab] KELAS.`;
+
+		if (parsed.badClass.length)
+			return `Kelas tidak valid di ${fmtLines(parsed.badClass)}. Gunakan kelas X, XI, atau XII, mis. "X DPIB 1".`;
 
 		if (classes.length > 1) {
-			const base = classes[0];
-			const odd = names
-				.map((n, i) => ({ n, line: i + 1 }))
-				.filter((x) => detectClass(x.n) !== base);
-			const sample = odd
-				.slice(0, 5)
-				.map((x) => `baris ${x.line}`)
-				.join(', ');
-			return `Kelas tidak boleh campur dalam satu bulk. Terdeteksi: ${classes.join(' / ')}. Yang berbeda dari "${base}": ${sample}${odd.length > 5 ? ', ...' : ''}.`;
+			const odd = parsed.rows.filter((r) => r.cls !== classes[0]).map((r) => r.line);
+			return `Kelas tidak boleh campur dalam satu bulk. Terdeteksi: ${classes.join(' / ')}. Yang berbeda dari "${classes[0]}": ${fmtLines(odd)}.`;
 		}
-
-		if (classes[0] === NO_CLASS)
-			return 'Kelas tidak terdeteksi. Format tiap baris: NAMA X DPIB 1 (kelas X, XI, atau XII).';
 
 		return '';
 	});
@@ -146,8 +179,7 @@
 	}
 
 	function resetInputs() {
-		identifier = '';
-		qrContent = '';
+		data = '';
 		error = '';
 		progress = '';
 	}
@@ -281,10 +313,9 @@
 		error = '';
 
 		if (!templateImg) return (error = 'Template belum ada. Upload dulu (PNG/WEBP).');
-		if (!names.length) return (error = 'Identifier masih kosong.');
-		if (classError) return (error = classError);
-		if (qrs.length && qrs.length !== names.length)
-			return (error = `Jumlah baris tidak sama: Identifier ${names.length}, Isi QR ${qrs.length}. Kosongkan Isi QR kalau mau pakai identifier sebagai isi QR.`);
+		if (!data.trim()) return (error = 'Data masih kosong.');
+		if (inputError) return (error = inputError);
+		if (!entries.length) return (error = 'Tidak ada tiket yang valid.');
 
 		loading = true;
 		try {
@@ -340,33 +371,23 @@
 
 			<div class="inputs">
 				<div>
-					<label for="identifier">Identifier (1 baris = 1 tiket, kelas harus sama)</label>
+					<label for="data">Data tiket (1 baris = 1 tiket)</label>
 					<textarea
-						name="identifier"
-						id="identifier"
-						cols="50"
+						name="data"
+						id="data"
 						rows="15"
-						placeholder={'AYU ANDRA X DPIB 1\nANADA X DPIB 1'}
-						bind:value={identifier}></textarea>
-					<button type="button" onclick={resetInputs} disabled={!identifier && !qrContent}>
-						Reset Identifier &amp; Isi QR
-					</button>
-				</div>
-
-				<div>
-					<label for="qr"
-						>Isi QR (urutan sama dengan Identifier, kosongkan = pakai identifier)</label
-					>
-					<textarea name="qr" id="qr" cols="50" rows="15" bind:value={qrContent}></textarea>
+						placeholder={'PBL-3HCN2YB1K4VIZ71NO\tADITYA SASANA MUKTI\tX TKP 1\nPBL-RLV5F4ZLGIHGXPDI1\tAKBAR FADHILLAH\tX TKP 1'}
+						bind:value={data}></textarea>
+					<button type="button" onclick={resetInputs} disabled={!data}> Reset Data </button>
 				</div>
 			</div>
 
-			{#if names.length}
+			{#if data.trim()}
 				<div class="summary">
-					{#if classError}
-						<p class="error">{classError}</p>
+					{#if inputError}
+						<p class="error">{inputError}</p>
 					{:else}
-						<strong>{names.length} tiket, kelas {className}</strong>
+						<strong>{entries.length} tiket, kelas {className}</strong>
 					{/if}
 				</div>
 			{/if}
@@ -374,15 +395,18 @@
 			<fieldset style="border-color: red;">
 				<legend style="color: red;">Perhatian!</legend>
 				<div class="desc">
+					<p>
+						Format tiap baris (3 kolom dipisah Tab, bisa langsung paste dari spreadsheet):
+						<b>KODE QR [Tab] NAMA [Tab] KELAS</b>
+					</p>
+					<p>Kelas yang didukung: X, XI, dan XII (mis. X DPIB 1, XI TJKT 2, XII TKP 1).</p>
 					<p style="color: red;">Per bulk kelas harus sama, tidak boleh campur, misal:</p>
 					<b>Boleh:</b>
-					<p>AYU ANDRA X DPIB 1</p>
-					<p>ALEX MORGAN X DPIB 1</p>
-					<p>BAYU SADEWA X DPIB 1</p>
+					<p>PBL-3HCN2YB1K4VIZ71NO&nbsp;&nbsp;AYU ANDRA&nbsp;&nbsp;XI TJKT 2</p>
+					<p>PBL-RLV5F4ZLGIHGXPDI1&nbsp;&nbsp;ALEX MORGAN&nbsp;&nbsp;XI TJKT 2</p>
 					<b>Tidak boleh:</b>
-					<p>AYU ANDRA X DPIB 1</p>
-					<p>ALEX MORGAN X DPIB 1</p>
-					<p>ANGGA YUNANDA X TJKT 2</p>
+					<p>PBL-3HCN2YB1K4VIZ71NO&nbsp;&nbsp;AYU ANDRA&nbsp;&nbsp;X DPIB 1</p>
+					<p>PBL-IM2HILFAKY6BSF285&nbsp;&nbsp;ANGGA YUNANDA&nbsp;&nbsp;XII TJKT 2</p>
 				</div>
 			</fieldset>
 
@@ -442,11 +466,11 @@
 
 			<div class="submit">
 				<button type="button" onclick={resetSettings}>Reset Pengaturan</button>
-				<button type="submit" disabled={loading || !!classError || !templateImg || !identifier}>
+				<button type="submit" disabled={loading || !!inputError || !templateImg || !entries.length}>
 					{loading ? 'Memproses...' : 'Cetak Tiket'}
 				</button>
 				{#if progress}<p class="progress">{progress}</p>{/if}
-				{#if error && error !== classError}<p class="error">{error}</p>{/if}
+				{#if error && error !== inputError}<p class="error">{error}</p>{/if}
 			</div>
 		</form>
 	</section>

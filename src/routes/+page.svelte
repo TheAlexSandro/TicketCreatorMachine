@@ -53,20 +53,16 @@
 	];
 
 	const safeName = (s: string) => s.replace(/[\\/:*?"<>|]/g, '').trim();
-
-	// Kelas yang valid: X, XI, XII + jurusan/rombel, mis. "X DPIB 1", "XI TJKT 2", "XII TKP 1"
 	const CLASS_RE = /^(XII|XI|X)\s+\S/i;
 	const normalizeClass = (c: string) => c.replace(/\s+/g, ' ').trim().toUpperCase();
 
 	type Row = { line: number; qr: string; name: string; cls: string };
 
-	// Format tiap baris: KODE QR <tab> NAMA <tab> KELAS
 	function splitColumns(line: string) {
 		let cols = line
 			.split('\t')
 			.map((c) => c.trim())
 			.filter(Boolean);
-		// Cadangan: kalau tab berubah jadi spasi, pisah di 2+ spasi
 		if (cols.length < 3) {
 			cols = line
 				.split(/\s{2,}/)
@@ -99,16 +95,12 @@
 		return { rows, badFormat, badClass };
 	});
 
-	// Nama di tiket: "NAMA KELAS", mis. "ADITYA SASANA MUKTI X TKP 1"
 	const entries = $derived<Entry[]>(
 		parsed.rows.map((r) => ({ name: `${r.name} ${r.cls}`, qr: r.qr }))
 	);
 
 	const classes = $derived([...new Set(parsed.rows.map((r) => r.cls))]);
-
-	// Nama kelas dipakai sebagai judul ZIP (hanya valid kalau semua baris sama)
 	const className = $derived(classes.length === 1 ? classes[0] : '');
-
 	const fmtLines = (l: number[]) =>
 		l
 			.slice(0, 5)

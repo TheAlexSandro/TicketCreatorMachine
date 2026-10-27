@@ -28,7 +28,24 @@
 	type Settings = typeof DEFAULTS;
 	type Entry = { name: string; qr: string };
 
+	const STORAGE_KEY = 'ticm';
+
 	let settings = $state<Settings>({ ...DEFAULTS });
+	let settingsLoaded = $state(false);
+
+	function loadSettings() {
+		try {
+			const raw = localStorage.getItem(STORAGE_KEY);
+			if (!raw) return;
+			const saved = JSON.parse(raw);
+			if (!saved || typeof saved !== 'object') return;
+			for (const key of Object.keys(DEFAULTS) as (keyof Settings)[]) {
+				if (typeof saved[key] === typeof DEFAULTS[key]) {
+					(settings as Record<string, unknown>)[key] = saved[key];
+				}
+			}
+		} catch {}
+	}
 
 	let data = $state('');
 	let loading = $state(false);
@@ -134,6 +151,9 @@
 	}
 
 	onMount(async () => {
+		loadSettings();
+		settingsLoaded = true;
+
 		try {
 			templateImg = await loadImage(DEFAULT_TEMPLATE);
 		} catch {
@@ -165,9 +185,25 @@
 		}
 	}
 
+	$effect(() => {
+		const snapshot = $state.snapshot(settings) as Settings;
+		if (!settingsLoaded) return;
+
+		try {
+			if (JSON.stringify(snapshot) === JSON.stringify(DEFAULTS)) {
+				localStorage.removeItem(STORAGE_KEY);
+			} else {
+				localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+			}
+		} catch {}
+	});
+
 	function resetSettings() {
-		alert('Pengaturan direset.');
+		try {
+			localStorage.clear();
+		} catch {}
 		Object.assign(settings, DEFAULTS);
+		alert('Pengaturan direset.');
 	}
 
 	function resetInputs() {
@@ -393,10 +429,10 @@
 					</p>
 					<p>Kelas yang didukung: X, XI, dan XII (mis. X DPIB 1, XI TJKT 2, XII TKP 1).</p>
 					<p style="color: red;">Per bulk kelas harus sama, tidak boleh campur, misal:</p>
-					<b>Boleh:</b>
+					<p><b>Boleh:</b></p>
 					<p>PBL-3HCN2YB1K4VIZ71NO&nbsp;&nbsp;AYU ANDRA&nbsp;&nbsp;XI TJKT 2</p>
 					<p>PBL-RLV5F4ZLGIHGXPDI1&nbsp;&nbsp;ALEX MORGAN&nbsp;&nbsp;XI TJKT 2</p>
-					<b>Tidak boleh:</b>
+					<p><b>Tidak boleh:</b></p>
 					<p>PBL-3HCN2YB1K4VIZ71NO&nbsp;&nbsp;AYU ANDRA&nbsp;&nbsp;X DPIB 1</p>
 					<p>PBL-IM2HILFAKY6BSF285&nbsp;&nbsp;ANGGA YUNANDA&nbsp;&nbsp;XII TJKT 2</p>
 				</div>

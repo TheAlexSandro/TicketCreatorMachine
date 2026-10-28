@@ -163,10 +163,17 @@ main .container form .summary {
 }
 
 main .container form .submit {
-	width: 260px;
+	width: 300px;
 	display: flex;
 	flex-direction: column;
 	gap: 10px;
+}
+
+main .container form .btn-list {
+	display: flex;
+	flex-direction: row;
+	gap: 10px;
+	align-items: stretch;
 }
 
 main .container form button {
@@ -176,7 +183,6 @@ main .container form button {
 	align-items: center;
 	text-align: center;
 	justify-content: center;
-	height: fit-content;
 	cursor: pointer;
 	border-radius: 5px;
 	outline: 0;

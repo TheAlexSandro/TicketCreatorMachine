@@ -164,11 +164,10 @@
 	async function onTemplateChange(e: Event) {
 		const input = e.currentTarget as HTMLInputElement;
 		const file = input.files?.[0];
-		error = '';
 		if (!file) return;
 
 		if (!ALLOWED_TYPES.includes(file.type)) {
-			error = 'Format template harus PNG atau WEBP.';
+			alert('Format template harus PNG atau WEBP.');
 			input.value = '';
 			return;
 		}
@@ -178,7 +177,7 @@
 			templateImg = await loadImage(url);
 			templateName = file.name;
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Template tidak valid.';
+			alert('Something went wrong...');
 			input.value = '';
 		} finally {
 			URL.revokeObjectURL(url);
@@ -204,6 +203,16 @@
 		} catch {}
 		Object.assign(settings, DEFAULTS);
 		alert('Pengaturan direset.');
+	}
+
+	function reset(type: string) {
+		const i = confirm(
+			`Apa Anda yakin ingin melakukan ini?\n${type === 'reload' ? 'reload hanya akan me-refresh halaman, pengaturan tidak terpengaruh' : 'reset pengaturan akan menghapus pengaturan Teks Nama dan Kode QR, halaman tidak akan reload'}`
+		);
+		if (i) {
+			if (type === 'reload') return window.location.reload();
+			if (type === 'settings') return resetSettings();
+		}
 	}
 
 	function resetInputs() {
@@ -392,7 +401,7 @@
 	<section class="container">
 		<form onsubmit={handleSubmit}>
 			<fieldset>
-				<legend>Template</legend>
+				<legend>Template Tiket</legend>
 				<input type="file" accept="image/png,image/webp" onchange={onTemplateChange} />
 				<small>Dipakai: {templateName}</small>
 			</fieldset>
@@ -493,7 +502,20 @@
 			</div>
 
 			<div class="submit">
-				<button type="button" onclick={resetSettings}>Reset Pengaturan</button>
+				<div class="btn-list">
+					<button
+						type="button"
+						onclick={() => {
+							reset('reload');
+						}}>Reload</button
+					>
+					<button
+						type="button"
+						onclick={() => {
+							reset('settings');
+						}}>Reset Pengaturan</button
+					>
+				</div>
 				<button type="submit" disabled={loading || !!inputError || !templateImg || !entries.length}>
 					{loading ? 'Memproses...' : 'Cetak Tiket'}
 				</button>

@@ -52,6 +52,7 @@ main .container form .inputs textarea {
 	width: 100%;
 	box-sizing: border-box;
 	resize: vertical;
+	border: 1px solid black;
 }
 
 main .container form .inputs button {
@@ -67,6 +68,11 @@ main .container form fieldset {
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
+	border: 1px solid black;
+}
+
+main .container form fieldset legend {
+	font-size: 17px;
 }
 
 main .container form fieldset .desc p {

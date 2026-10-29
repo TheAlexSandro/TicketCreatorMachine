@@ -401,6 +401,20 @@
 	<section class="container">
 		<form onsubmit={handleSubmit}>
 			<fieldset>
+				<legend>Petunjuk Penggunaan</legend>
+				<div class="desc">
+					<p><b>Buka website ini di komputer/laptop agar lebih mudah</b></p>
+					<p>1. Upload desain atau template tiket dibagian Template Tiket</p>
+					<p>2. Isi kolom Data dari data tiket spreadsheet</p>
+					<p>3. Sesuaikan penempatan nama dan QR kode pada bagian Teks Nama dan QR Code</p>
+					<p>4. Jika sudah sesuai semua, tekan pada Cetak Tiket</p>
+					<p>5. Ulangi proses ini untuk semua kelas</p>
+				</div>
+			</fieldset>
+
+			<div class="sepa"></div>
+
+			<fieldset id="temp">
 				<legend>Template Tiket</legend>
 				<input type="file" accept="image/png,image/webp" onchange={onTemplateChange} />
 				<small>Dipakai: {templateName}</small>

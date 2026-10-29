@@ -34,6 +34,11 @@ main .container form {
 	width: 100%;
 }
 
+main .container form .sepa {
+	display: block;
+	margin-bottom: 5px;
+}
+
 main .container form .inputs {
 	display: flex;
 	flex-direction: row;
